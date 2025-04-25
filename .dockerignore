@@ -1,0 +1,26 @@
+# Node modules and dependencies
+node_modules
+npm-debug.log
+
+# Git files
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Environment variables
+.env
+
+# Log files
+logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Development files
+README.md

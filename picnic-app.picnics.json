@@ -1,0 +1,182 @@
+[{
+  "_id": {
+    "$oid": "680a54ca4ae2eb4db35e289a"
+  },
+  "name": "4, Chemin des Roches",
+  "date": {
+    "$date": "2025-04-24T00:00:00.000Z"
+  },
+  "location": "4, Chemin des Roches, Pully, District de Lavaux-Oron, Vaud, 1009, Switzerland",
+  "coordinates": {
+    "lat": 46.510847,
+    "lng": 6.664207
+  },
+  "description": "uizuizu",
+  "items": [
+    {
+      "name": "",
+      "list": "",
+      "_id": {
+        "$oid": "680a54ca4ae2eb4db35e289b"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-24T15:12:10.426Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680a56934ae2eb4db35e28b8"
+  },
+  "name": "86th Street Transverse, Upper West Side",
+  "date": {
+    "$date": "2025-04-24T00:00:00.000Z"
+  },
+  "location": "86th Street Transverse, Upper West Side, Manhattan, New York County, New York, 10024, United States",
+  "coordinates": {
+    "lat": 40.785091,
+    "lng": -73.968285
+  },
+  "description": "",
+  "items": [
+    {
+      "name": "",
+      "list": "",
+      "_id": {
+        "$oid": "680a56934ae2eb4db35e28b9"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-24T15:19:47.584Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680a57d24ae2eb4db35e28c0"
+  },
+  "name": "86th Street Transverse, Upper West Side",
+  "date": {
+    "$date": "2025-04-24T00:00:00.000Z"
+  },
+  "location": "86th Street Transverse, Upper West Side, Manhattan, New York County, New York, 10024, United States",
+  "coordinates": {
+    "lat": 40.785091,
+    "lng": -73.968285
+  },
+  "description": "",
+  "items": [
+    {
+      "name": "",
+      "list": "",
+      "_id": {
+        "$oid": "680a57d24ae2eb4db35e28c1"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-24T15:25:06.715Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680a58c34ae2eb4db35e28c7"
+  },
+  "name": "86th Street Transverse, Upper West Side",
+  "date": {
+    "$date": "2025-04-24T00:00:00.000Z"
+  },
+  "location": "86th Street Transverse, Upper West Side, Manhattan, New York County, New York, 10024, United States",
+  "coordinates": {
+    "lat": 40.785091,
+    "lng": -73.968285
+  },
+  "description": "",
+  "items": [
+    {
+      "name": "John",
+      "list": "Sandwiches, Drinks, Plates",
+      "_id": {
+        "$oid": "680a58c34ae2eb4db35e28c8"
+      }
+    },
+    {
+      "name": "Sarah",
+      "list": "Fruit, Blankets, Napkins",
+      "_id": {
+        "$oid": "680a58c34ae2eb4db35e28c9"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-24T15:29:07.462Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680a59b04ae2eb4db35e28d3"
+  },
+  "name": "86th Street Transverse, Upper West Side",
+  "date": {
+    "$date": "2025-04-24T00:00:00.000Z"
+  },
+  "location": "86th Street Transverse, Upper West Side, Manhattan, New York County, New York, 10024, United States",
+  "coordinates": {
+    "lat": 40.785091,
+    "lng": -73.968285
+  },
+  "description": "",
+  "items": [
+    {
+      "name": "John",
+      "list": "Sandwiches, Drinks, Plates",
+      "_id": {
+        "$oid": "680a59b04ae2eb4db35e28d4"
+      }
+    },
+    {
+      "name": "Sarah",
+      "list": "Fruit, Blankets, Napkins",
+      "_id": {
+        "$oid": "680a59b04ae2eb4db35e28d5"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-24T15:33:04.225Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680a5a8d4ae2eb4db35e28ec"
+  },
+  "name": "4, Chemin des Roches",
+  "date": {
+    "$date": "2025-04-24T00:00:00.000Z"
+  },
+  "location": "4, Chemin des Roches, Pully, District de Lavaux-Oron, Vaud, 1009, Switzerland",
+  "coordinates": {
+    "lat": 46.510847,
+    "lng": 6.664207
+  },
+  "description": "what",
+  "items": [
+    {
+      "name": "jjj",
+      "list": "ghgfh",
+      "_id": {
+        "$oid": "680a5a8d4ae2eb4db35e28ed"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-24T15:36:45.636Z"
+  },
+  "__v": 0
+}]

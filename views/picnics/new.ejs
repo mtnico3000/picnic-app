@@ -1,0 +1,118 @@
+<div class="row">
+  <div class="col-md-12">
+    <% if (typeof dbConnected !== 'undefined' && !dbConnected) { %>
+      <div class="alert alert-warning">
+        <strong>Note:</strong> Running in demo mode. Database is not connected. 
+        This picnic will not be saved permanently.
+      </div>
+    <% } %>
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">Create New Picnic</h3>
+        <a href="/picnics" class="btn btn-secondary">Back to All Picnics</a>
+      </div>
+      <div class="card-body">
+        <form action="/picnics" method="POST">
+          <!-- Picnic Name -->
+          <div class="form-field-row">
+            <label for="name">Picnic Name</label>
+            <div class="field-container">
+              <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+          </div>
+          
+          <!-- Date and Time -->
+          <div class="mb-3 row">
+            <div class="col-md-6">
+              <div class="form-field-row">
+                <label for="date">Date</label>
+                <div class="field-container">
+                  <input type="date" class="form-control" id="date" name="picnic_date" required>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-field-row">
+                <label for="time">Time</label>
+                <div class="field-container">
+                  <input type="time" class="form-control" id="time" name="picnic_time" placeholder="18:00" value="18:00" required>
+                </div>
+              </div>
+            </div>
+            <!-- Hidden field to store combined date and time -->
+            <input type="hidden" id="datetime" name="date">
+          </div>
+          
+          <!-- Location -->
+          <div class="form-field-row">
+            <label for="location">Location</label>
+            <div class="field-container">
+              <input type="text" class="form-control" id="location" name="location" required>
+            </div>
+          </div>
+          
+          <!-- Map -->
+          <div class="mb-3">
+            <div id="map-container" class="mt-3">
+              <div id="map" class="map"></div>
+            </div>
+            
+            <div id="coordinates-display" class="coordinates-display"></div>
+            
+            <!-- Hidden inputs for coordinates and zoom level -->
+            <input type="hidden" id="lat" name="lat" value="40.785091">
+            <input type="hidden" id="lng" name="lng" value="-73.968285">
+            <input type="hidden" id="zoomLevel" name="zoomLevel" value="13">
+          </div>
+          
+          <!-- Amenities -->
+          <div class="mb-3">
+            <div class="form-field-row">
+              <label>Nearby Amenities</label>
+              <div class="field-container">
+                <div id="amenities-display" class="p-3 border rounded">
+                  <div id="amenities-content">Loading amenities...</div>
+                </div>
+                <input type="hidden" id="amenities" name="amenities" value="">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Message field -->
+          <div class="mb-3">
+            <div class="form-field-row">
+              <label for="message">Message</label>
+              <div class="field-container">
+                <textarea class="form-control auto-resize" id="message" name="description" rows="2"></textarea>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Attendees & Items</label>
+            <div id="items-container">
+              <div class="item-row mb-2 d-flex">
+                <div class="col-md-4 pe-2">
+                  <input type="text" class="form-control item-name" name="items[0][name]" placeholder="<%= typeof configName !== 'undefined' ? configName : 'Attendee Name' %>">
+                </div>
+                <div class="col-md-7 pe-2">
+                  <input type="text" class="form-control item-list" name="items[0][list]" placeholder="Items (comma-separated)">
+                </div>
+                <div class="col-md-1">
+                  <button type="button" class="btn btn-sm btn-success add-item-btn">+</button>
+                </div>
+              </div>
+            </div>
+            <div class="form-text">Add attendees and the items they will bring</div>
+          </div>
+          
+          <input type="hidden" id="amenities-data" name="amenities-data" value="">
+          
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">Create Picnic</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

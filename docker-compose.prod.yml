@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # Node.js application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: picnic-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - SESSION_SECRET=${SESSION_SECRET:-picnic-app-secret-key-change-in-production}
+      - DB_URI=${DB_URI:-mongodb://mongo:27017/picnic-app}
+    depends_on:
+      - mongo
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - picnic-network
+    # Initialize the database and then start the application
+    command: >
+      sh -c "
+        echo 'Waiting for MongoDB to start...' &&
+        sleep 5 &&
+        echo 'Running database initialization script...' &&
+        node scripts/docker-init-db.js &&
+        echo 'Starting application...' &&
+        npm start
+      "
+    # Not exposing ports directly - only through Nginx
+    # Health check
+    healthcheck:
+      test: ["CMD", "node", "scripts/healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # MongoDB service
+  mongo:
+    image: mongo:6-focal
+    container_name: picnic-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - picnic-network
+    # Not exposing ports directly in production
+    # Add authentication for production
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD:-password}
+    command: ["--auth"]
+
+  # Nginx service for reverse proxy
+  nginx:
+    image: nginx:stable-alpine
+    container_name: picnic-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./public:/usr/src/app/public:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+    depends_on:
+      - app
+    networks:
+      - picnic-network
+
+# Networks
+networks:
+  picnic-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  mongo-data:
+    driver: local

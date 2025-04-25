@@ -1,0 +1,358 @@
+/* Main Styles for Picnic App */
+
+:root {
+  /* Light theme with warm colors */
+  --light-bg: #f8f9fa;
+  --light-surface: #ffffff;
+  --light-surface-lighter: #f0f0f0;
+  --light-text: #212529;
+  --light-text-muted: #6c757d;
+  --light-border: #dee2e6;
+  
+  /* Warm accent colors */
+  --warm-primary: #e67e22;      /* Orange */
+  --warm-primary-dark: #d35400; /* Dark Orange */
+  --warm-secondary: #f39c12;    /* Amber */
+  --warm-success: #27ae60;      /* Green with warm undertone */
+  --warm-danger: #e74c3c;       /* Warm Red */
+  --warm-warning: #f1c40f;      /* Yellow */
+  --warm-info: #3498db;         /* Blue with warm undertone */
+  
+  /* Bootstrap overrides */
+  --bs-body-bg: var(--light-bg);
+  --bs-body-color: var(--light-text);
+  --bs-primary: var(--warm-primary);
+  --bs-secondary: #6c757d;
+  --bs-success: var(--warm-success);
+  --bs-info: var(--warm-info);
+  --bs-warning: var(--warm-warning);
+  --bs-danger: var(--warm-danger);
+  --bs-light: var(--light-surface-lighter);
+  --bs-dark: #343a40;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--light-text);
+  background-color: var(--light-bg);
+  padding-bottom: 60px; /* Space for footer */
+}
+
+/* Navbar customization */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: var(--light-surface) !important;
+}
+
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+  color: var(--warm-primary) !important;
+}
+
+.navbar-light .navbar-nav .nav-link {
+  color: var(--light-text) !important;
+}
+
+.navbar-light .navbar-nav .nav-link:hover {
+  color: var(--warm-primary) !important;
+}
+
+/* Jumbotron styling */
+.jumbotron {
+  background-color: var(--light-surface);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border-radius: 0.3rem;
+  color: var(--light-text);
+  border: 1px solid var(--light-border);
+}
+
+/* Card customization */
+.card {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--light-border);
+  background-color: var(--light-surface);
+  color: var(--light-text);
+}
+
+.card-header {
+  background-color: var(--light-surface-lighter);
+  border-bottom: 1px solid var(--light-border);
+  font-weight: bold;
+  color: var(--light-text);
+}
+
+/* Button styling */
+.btn {
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: var(--warm-primary);
+  border-color: var(--warm-primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: var(--warm-primary-dark);
+  border-color: var(--warm-primary-dark);
+}
+
+.btn-success {
+  background-color: var(--warm-success);
+  border-color: var(--warm-success);
+}
+
+.btn-danger {
+  background-color: var(--warm-danger);
+  border-color: var(--warm-danger);
+}
+
+.btn-warning {
+  background-color: var(--warm-warning);
+  border-color: var(--warm-warning);
+  color: #212529;
+}
+
+.btn-info {
+  background-color: var(--warm-info);
+  border-color: var(--warm-info);
+}
+
+/* Table customization */
+.table {
+  background-color: var(--light-surface);
+  border-radius: 0.25rem;
+  overflow: hidden;
+  color: var(--light-text);
+}
+
+.table td, .table th {
+  border-color: var(--light-border);
+}
+
+.table-light th {
+  background-color: var(--light-surface-lighter);
+  color: var(--light-text);
+}
+
+/* Form styling */
+.form-control {
+  background-color: var(--light-surface);
+  border-color: var(--light-border);
+  color: var(--light-text);
+}
+
+.form-control:focus {
+  border-color: var(--warm-primary);
+  box-shadow: 0 0 0 0.2rem rgba(230, 126, 34, 0.25);
+  background-color: var(--light-surface);
+  color: var(--light-text);
+}
+
+.form-control::placeholder {
+  color: var(--light-text-muted);
+}
+
+/* Footer styling */
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 60px;
+  line-height: 60px;
+  background-color: var(--light-surface);
+  border-top: 1px solid var(--light-border);
+  color: var(--light-text-muted);
+}
+
+.text-muted {
+  color: var(--light-text-muted) !important;
+}
+
+/* Map styling */
+#map-container {
+  height: 400px;
+  margin-bottom: 1rem;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--light-border);
+}
+
+.map {
+  height: 100%;
+  width: 100%;
+}
+
+.coordinates-display {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--light-text-muted);
+}
+
+/* Amenity styling */
+.circle-legend {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+/* Amenities content background */
+#amenities-content, 
+.card-body:has(> [id^="amenities-content"]),
+.card-body:has(> [class^="amenities-content"]),
+.amenities-container {
+  background-color: var(--light-surface-lighter) !important;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid var(--light-border);
+}
+
+/* Make amenities text visible in light theme */
+#amenities-display,
+.amenities-container {
+  color: var(--light-text) !important;
+}
+
+/* Style amenity links with warm colors */
+#amenities-content a, 
+#amenities-display a,
+.amenities-container a {
+  color: var(--warm-primary) !important;
+  text-decoration: none;
+}
+
+#amenities-content a:hover, 
+#amenities-display a:hover,
+.amenities-container a:hover {
+  color: var(--warm-secondary) !important;
+  text-decoration: underline;
+}
+
+/* Style amenity items */
+.amenity-item {
+  margin-bottom: 5px;
+}
+
+/* Style amenity colors - keeping the same colors for consistency */
+.amenity-bbq { color: var(--warm-primary) !important; }
+.amenity-water { color: var(--warm-info) !important; }
+.amenity-table { color: #6610f2 !important; }
+.amenity-toilet { color: var(--light-text-muted) !important; }
+.amenity-shower { color: var(--warm-success) !important; }
+.amenity-waste { color: var(--warm-warning) !important; }
+.amenity-disposal { color: var(--light-text-muted) !important; }
+.amenity-recycling { color: var(--warm-info) !important; }
+.amenity-bench { color: var(--warm-info) !important; }
+
+/* Loading indicator for amenities */
+.amenities-loading {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Spinning animation for loading indicator */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Auto-resize textarea */
+.auto-resize {
+  min-height: 100px;
+  overflow-y: hidden;
+  resize: vertical;
+  background-color: var(--light-surface);
+  color: var(--light-text);
+  border-color: var(--light-border);
+}
+
+/* Bootstrap overrides for light theme */
+.bg-light {
+  background-color: var(--light-surface-lighter) !important;
+}
+
+.bg-primary {
+  background-color: var(--warm-primary) !important;
+}
+
+.text-dark {
+  color: var(--light-text) !important;
+}
+
+.border {
+  border-color: var(--light-border) !important;
+}
+
+.list-group-item {
+  background-color: var(--light-surface);
+  border-color: var(--light-border);
+  color: var(--light-text);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .jumbotron {
+    padding: 1rem;
+  }
+  
+  .display-4 {
+    font-size: 2rem;
+  }
+  
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+  
+  #map-container {
+    height: 250px;
+  }
+}
+
+/* Form field layout customization */
+.form-field-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.form-field-row label {
+  width: 120px;
+  margin-right: 1rem;
+  text-align: right;
+}
+
+.form-field-row .field-container {
+  flex-grow: 1;
+  display: flex;
+}
+
+.form-field-row .field-container .form-control {
+  flex-grow: 1;
+}
+
+.form-field-row .field-container .emoji-picker-btn {
+  margin-left: 0.5rem;
+}
