@@ -38,6 +38,9 @@ A Node.js application for planning and managing picnic events.
    ```
    npm run dev
    ```
+5. Access the application and log in with the default credentials:
+   - Username: admin
+   - Password: passw0rd
 
 You can also use the provided scripts for local development and production:
 
@@ -108,6 +111,9 @@ The application can also be run using Docker and Docker Compose:
    docker-compose up -d
    ```
 4. Access the application at `http://localhost:3001`
+5. Log in with the default credentials:
+   - Username: admin
+   - Password: passw0rd
 
 For more detailed Docker deployment instructions, see the [Docker Deployment Guide](DOCKER.md).
 
