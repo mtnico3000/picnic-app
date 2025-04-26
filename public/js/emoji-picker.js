@@ -57,11 +57,33 @@ function initEmojiPicker() {
   // Create emoji picker buttons for title and message fields
   createEmojiPickerButton('name', 'Picnic Name');
   createEmojiPickerButton('message', 'Message');
+  
+  // Add emoji pickers to all attendee name fields
+  addEmojiPickersToAttendeeFields();
+  
+  // Add event listener to add emoji pickers to new attendee fields when they're created
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('add-item-btn')) {
+      // Wait a bit for the new field to be added to the DOM
+      setTimeout(addEmojiPickersToAttendeeFields, 100);
+    }
+  });
+}
+
+// Add emoji pickers to all attendee name fields
+function addEmojiPickersToAttendeeFields() {
+  const attendeeFields = document.querySelectorAll('.item-name');
+  attendeeFields.forEach((field, index) => {
+    // Check if this field already has an emoji picker
+    if (!field.parentNode.querySelector('.emoji-picker-btn')) {
+      createEmojiPickerButton(field.id || `attendee-${index}`, 'Attendee Name', field);
+    }
+  });
 }
 
 // Create emoji picker button for a specific field
-function createEmojiPickerButton(fieldId, fieldName) {
-  const field = document.getElementById(fieldId);
+function createEmojiPickerButton(fieldId, fieldName, fieldElement) {
+  const field = fieldElement || document.getElementById(fieldId);
   if (!field) return;
   
   // Create emoji button

@@ -75,6 +75,21 @@ router.post('/', async (req, res) => {
       config.password = req.body.password;
       config.amenitiesDistance = parseInt(req.body.amenitiesDistance) || 1000;
       
+      // Update amenities enabled status if provided
+      if (req.body.amenities) {
+        // Get the enabled amenities from the form
+        const enabledAmenities = Array.isArray(req.body.amenities) 
+          ? req.body.amenities 
+          : [req.body.amenities];
+        
+        // Update each amenity's enabled status
+        if (config.amenities && config.amenities.length > 0) {
+          config.amenities.forEach(amenity => {
+            amenity.enabled = enabledAmenities.includes(amenity.queryKey);
+          });
+        }
+      }
+      
       // Save the updated config
       await config.save();
       console.log('Config updated successfully');

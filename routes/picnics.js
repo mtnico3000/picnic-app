@@ -94,10 +94,10 @@ router.post('/', async (req, res) => {
       lng: parseFloat(req.body.lng) || 0
     },
     zoomLevel: parseInt(req.body.zoomLevel) || 13,
-    description: req.body.description,
+    description: req.body.description || "Picnic time! 😎", // Use placeholder text if description is empty
     amenities: req.body.amenities || '',
     items: req.body.items ? Object.keys(req.body.items).map(key => ({
-      name: req.body.items[key].name,
+      name: req.body.items[key].name || 'Anonymous', // Use 'Anonymous' as default if name is empty
       list: req.body.items[key].list
     })) : []
   };
@@ -111,8 +111,8 @@ router.post('/', async (req, res) => {
       await newPicnic.save();
       console.log('New picnic saved successfully with ID:', newPicnic._id);
       
-      // Redirect to the picnics list
-      res.redirect('/picnics');
+      // Redirect to the picnic details page
+      res.redirect(`/picnics/${newPicnic._id}`);
     } catch (err) {
       console.error('Error saving picnic:', err);
       // Show error message and redirect
@@ -224,10 +224,10 @@ router.post('/:id', async (req, res) => {
         lng: parseFloat(req.body.lng) || 0
       },
       zoomLevel: parseInt(req.body.zoomLevel) || 13,
-      description: req.body.description,
+      description: req.body.description || "Picnic time! 😎", // Use placeholder text if description is empty
       amenities: req.body.amenities || '',
       items: req.body.items ? Object.keys(req.body.items).map(key => ({
-        name: req.body.items[key].name,
+        name: req.body.items[key].name || 'Anonymous', // Use 'Anonymous' as default if name is empty
         list: req.body.items[key].list
       })) : []
     };
@@ -270,7 +270,7 @@ router.post('/:id/add-item', async (req, res) => {
     
     // Create a new item object
     const newItem = {
-      name: req.body.name,
+      name: req.body.name || 'Anonymous', // Use 'Anonymous' as default if name is empty
       list: req.body.list
     };
     

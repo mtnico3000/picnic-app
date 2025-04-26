@@ -23,25 +23,85 @@ window.updateAmenitiesList = async function(lat, lng) {
   const radius = await window.getAmenitiesDistance();
   console.log('Using amenities distance:', radius, 'meters');
   
+  // Get enabled amenities from the config
+  const enabledAmenities = await window.getEnabledAmenities();
+  
+  // If no amenities are enabled, return early
+  if (enabledAmenities.length === 0) {
+    console.log('No amenities enabled in config');
+    if (amenitiesContent) {
+      amenitiesContent.innerHTML = '<p>No amenities enabled in config.</p>';
+    }
+    return;
+  }
+  
+  // Build Overpass API query based on enabled amenities
+  let overpassQueryParts = [];
+  
+  // Only include enabled amenities in the query
+  if (enabledAmenities.includes('firepit')) {
+    overpassQueryParts.push(`node["leisure"="firepit"](around:${radius},${lat},${lng});`);
+    overpassQueryParts.push(`node["amenity"="fireplace"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('bbq')) {
+    overpassQueryParts.push(`node["amenity"="bbq"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('water')) {
+    overpassQueryParts.push(`node["amenity"="drinking_water"](around:${radius},${lat},${lng});`);
+    overpassQueryParts.push(`node["drinking_water"="yes"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('picnicSite')) {
+    overpassQueryParts.push(`node["tourism"="picnic_site"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('picnicTable')) {
+    overpassQueryParts.push(`node["leisure"="picnic_table"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('toilets')) {
+    overpassQueryParts.push(`node["amenity"="toilets"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('shower')) {
+    overpassQueryParts.push(`node["amenity"="shower"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('wasteBasket')) {
+    overpassQueryParts.push(`node["amenity"="waste_basket"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('wasteDisposal')) {
+    overpassQueryParts.push(`node["amenity"="waste_disposal"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('recycling')) {
+    overpassQueryParts.push(`node["amenity"="recycling"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('shelter')) {
+    overpassQueryParts.push(`node["amenity"="shelter"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('bench')) {
+    overpassQueryParts.push(`node["amenity"="bench"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('campSite')) {
+    overpassQueryParts.push(`node["tourism"="camp_site"](around:${radius},${lat},${lng});`);
+  }
+  
+  if (enabledAmenities.includes('viewpoint')) {
+    overpassQueryParts.push(`node["tourism"="viewpoint"](around:${radius},${lat},${lng});`);
+  }
+  
+  // Combine all query parts
   const overpassQuery = `
     [out:json][timeout:25];
     (
-      node["leisure"="firepit"](around:${radius},${lat},${lng});
-      node["amenity"="fireplace"](around:${radius},${lat},${lng});
-      node["amenity"="bbq"](around:${radius},${lat},${lng});
-      node["amenity"="drinking_water"](around:${radius},${lat},${lng});
-      node["drinking_water"="yes"](around:${radius},${lat},${lng});
-      node["tourism"="picnic_site"](around:${radius},${lat},${lng});
-      node["leisure"="picnic_table"](around:${radius},${lat},${lng});
-      node["amenity"="toilets"](around:${radius},${lat},${lng});
-      node["amenity"="shower"](around:${radius},${lat},${lng});
-      node["amenity"="waste_basket"](around:${radius},${lat},${lng});
-      node["amenity"="waste_disposal"](around:${radius},${lat},${lng});
-      node["amenity"="recycling"](around:${radius},${lat},${lng});
-      node["amenity"="shelter"](around:${radius},${lat},${lng});
-      node["amenity"="bench"](around:${radius},${lat},${lng});
-      node["tourism"="camp_site"](around:${radius},${lat},${lng});
-      node["tourism"="viewpoint"](around:${radius},${lat},${lng});
+      ${overpassQueryParts.join('\n      ')}
     );
     out body;
     >;
@@ -308,5 +368,47 @@ window.getAmenitiesDistance = async function() {
   } catch (error) {
     console.error('Error fetching amenities distance:', error);
     return 1000; // Default value on error
+  }
+}
+
+// Function to get the enabled amenities from the config
+window.getEnabledAmenities = async function() {
+  try {
+    const response = await fetch('/config');
+    if (!response.ok) {
+      throw new Error('Failed to fetch config');
+    }
+    
+    // Parse the HTML response
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Get all checked amenity checkboxes
+    const enabledAmenities = [];
+    const amenityCheckboxes = doc.querySelectorAll('input[name="amenities"]:checked');
+    
+    amenityCheckboxes.forEach(checkbox => {
+      enabledAmenities.push(checkbox.value);
+    });
+    
+    // If no amenities are checked, return all amenities as enabled (default behavior)
+    if (enabledAmenities.length === 0) {
+      return [
+        'firepit', 'bbq', 'water', 'picnicSite', 'picnicTable', 
+        'toilets', 'shower', 'wasteBasket', 'wasteDisposal', 
+        'recycling', 'shelter', 'bench', 'campSite', 'viewpoint'
+      ];
+    }
+    
+    return enabledAmenities;
+  } catch (error) {
+    console.error('Error fetching enabled amenities:', error);
+    // Return all amenities as enabled on error (default behavior)
+    return [
+      'firepit', 'bbq', 'water', 'picnicSite', 'picnicTable', 
+      'toilets', 'shower', 'wasteBasket', 'wasteDisposal', 
+      'recycling', 'shelter', 'bench', 'campSite', 'viewpoint'
+    ];
   }
 }

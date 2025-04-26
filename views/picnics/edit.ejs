@@ -7,6 +7,52 @@
   </div>
 </div>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add item functionality
+    const itemsContainer = document.getElementById('items-container');
+    const addItemBtns = document.querySelectorAll('.add-item-btn');
+    const removeItemBtns = document.querySelectorAll('.remove-item-btn');
+    
+    if (itemsContainer) {
+      // Add new item row
+      addItemBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const itemCount = itemsContainer.querySelectorAll('.item-row').length;
+          
+          const newRow = document.createElement('div');
+          newRow.className = 'item-row mb-2 d-flex';
+          newRow.innerHTML = `
+            <div class="col-md-4 pe-2">
+              <input type="text" class="form-control item-name" name="items[${itemCount}][name]" placeholder="Attendee Name">
+            </div>
+            <div class="col-md-7 pe-2">
+              <input type="text" class="form-control item-list" name="items[${itemCount}][list]" placeholder="Items (comma-separated)" required>
+            </div>
+            <div class="col-md-1">
+              <button type="button" class="btn btn-sm btn-danger remove-item-btn">-</button>
+            </div>
+          `;
+          
+          itemsContainer.appendChild(newRow);
+          
+          // Add event listener to the new remove button
+          const removeBtn = newRow.querySelector('.remove-item-btn');
+          removeBtn.addEventListener('click', function() {
+            newRow.remove();
+          });
+        });
+      });
+      
+      // Remove item row
+      removeItemBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          this.closest('.item-row').remove();
+        });
+      });
+    }
+  });
+</script>
 <div class="row">
   <div class="col-md-8 offset-md-2">
     <div class="card">
@@ -81,12 +127,12 @@
                 <% picnic.items.forEach((item, index) => { %>
                   <div class="item-row mb-2 d-flex">
                     <div class="col-md-4 pe-2">
-                      <input type="text" class="form-control item-name" name="items[<%= index %>][name]" 
+                    <input type="text" class="form-control item-name" name="items[<%= index %>][name]" 
                              value="<%= item.name %>" placeholder="Attendee Name">
                     </div>
                     <div class="col-md-7 pe-2">
                       <input type="text" class="form-control item-list" name="items[<%= index %>][list]" 
-                             value="<%= item.list %>" placeholder="Items (comma-separated)">
+                             value="<%= item.list %>" placeholder="Items (comma-separated)" required>
                     </div>
                     <div class="col-md-1">
                       <% if (index === 0) { %>
@@ -103,7 +149,7 @@
                     <input type="text" class="form-control item-name" name="items[0][name]" placeholder="Attendee Name">
                   </div>
                   <div class="col-md-7 pe-2">
-                    <input type="text" class="form-control item-list" name="items[0][list]" placeholder="Items (comma-separated)">
+                    <input type="text" class="form-control item-list" name="items[0][list]" placeholder="Items (comma-separated)" required>
                   </div>
                   <div class="col-md-1">
                     <button type="button" class="btn btn-sm btn-success add-item-btn">+</button>

@@ -189,9 +189,9 @@ function initMap() {
     }
   }
   
-  // Default coordinates (New York Central Park)
-  let lat = 40.785091;
-  let lng = -73.968285;
+  // Default coordinates (Lausanne, Switzerland)
+  let lat = 46.511870;
+  let lng = 6.603551;
   
   // Check if we have existing coordinates from the form
   const latInput = document.getElementById('lat');
@@ -246,7 +246,7 @@ function initMap() {
   
   // If we're on the create page and don't have coordinates yet, try to get the user's current location
   const isCreatePage = document.querySelector('form[action="/picnics"]') && !document.querySelector('form[action="/picnics"]').action.includes('/picnics/');
-  if (isCreatePage && (!latInput.value || latInput.value === '40.785091')) {
+  if (isCreatePage && (!latInput.value || latInput.value === '46.511870')) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         function(position) {
@@ -254,7 +254,7 @@ function initMap() {
           const userLng = position.coords.longitude;
           
           // Update the map view and marker
-          map.setView([userLat, userLng], 13);
+          map.setView([userLat, userLng], zoomLevel);
           marker.setLatLng([userLat, userLng]);
           
           // Update the form inputs
@@ -398,7 +398,7 @@ function initMap() {
             const latlng = { lat: parseFloat(result.lat), lng: parseFloat(result.lon) };
             
             marker.setLatLng(latlng);
-            map.setView(latlng, 13);
+            map.setView(latlng, zoomLevel);
             updateCoordinates(latlng);
           }
         })

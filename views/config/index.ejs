@@ -1,3 +1,9 @@
+<style>
+  .amenity-label {
+    font-weight: bold;
+  }
+</style>
+
 <div class="row">
   <div class="col-md-8 offset-md-2">
     <div class="card">
@@ -53,6 +59,45 @@
               <button type="submit" class="btn btn-primary w-100">Update</button>
             </div>
           </div>
+          
+          <!-- Amenities Section -->
+          <div class="mb-3 row">
+            <label class="col-sm-2 col-form-label">Amenities</label>
+            <div class="col-sm-10">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="mb-0">Select Amenities to Include in Queries</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <% if (config.amenities && config.amenities.length > 0) { %>
+                      <% config.amenities.forEach(amenity => { %>
+                        <div class="col-md-4 mb-2">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" 
+                                  id="amenity-<%= amenity.queryKey %>" 
+                                  name="amenities" 
+                                  value="<%= amenity.queryKey %>"
+                                  <%= amenity.enabled ? 'checked' : '' %>>
+                            <label class="form-check-label" for="amenity-<%= amenity.queryKey %>">
+                              <span class="amenity-label" data-color="<%= amenity.color || '#000' %>"><%= amenity.emoji %> <%= amenity.name %></span>
+                            </label>
+                          </div>
+                        </div>
+                      <% }); %>
+                    <% } else { %>
+                      <div class="col-12">
+                        <p>No amenities configured.</p>
+                      </div>
+                    <% } %>
+                  </div>
+                  <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">Update Amenities</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </form>
         
         <div class="mt-4">
@@ -76,5 +121,13 @@
         amenitiesDistanceValue.textContent = this.value + ' meters';
       });
     }
+    
+    // Apply colors to amenity labels
+    document.querySelectorAll('.amenity-label').forEach(function(label) {
+      const color = label.getAttribute('data-color');
+      if (color) {
+        label.style.color = color;
+      }
+    });
   });
 </script>
