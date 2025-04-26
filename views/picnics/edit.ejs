@@ -1,0 +1,172 @@
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h1><%= title %></h1>
+  </div>
+  <div class="col-md-4 text-end">
+    <a href="/picnics/<%= picnic._id %>" class="btn btn-secondary">Back to Picnic</a>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add item functionality
+    const itemsContainer = document.getElementById('items-container');
+    const addItemBtns = document.querySelectorAll('.add-item-btn');
+    const removeItemBtns = document.querySelectorAll('.remove-item-btn');
+    
+    if (itemsContainer) {
+      // Add new item row
+      addItemBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const itemCount = itemsContainer.querySelectorAll('.item-row').length;
+          
+          const newRow = document.createElement('div');
+          newRow.className = 'item-row mb-2 d-flex';
+          newRow.innerHTML = `
+            <div class="col-md-4 pe-2">
+              <input type="text" class="form-control item-name" name="items[${itemCount}][name]" placeholder="Attendee Name">
+            </div>
+            <div class="col-md-7 pe-2">
+              <input type="text" class="form-control item-list" name="items[${itemCount}][list]" placeholder="Items (comma-separated)" required>
+            </div>
+            <div class="col-md-1">
+              <button type="button" class="btn btn-sm btn-danger remove-item-btn">-</button>
+            </div>
+          `;
+          
+          itemsContainer.appendChild(newRow);
+          
+          // Add event listener to the new remove button
+          const removeBtn = newRow.querySelector('.remove-item-btn');
+          removeBtn.addEventListener('click', function() {
+            newRow.remove();
+          });
+        });
+      });
+      
+      // Remove item row
+      removeItemBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          this.closest('.item-row').remove();
+        });
+      });
+    }
+  });
+</script>
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <div class="card">
+      <div class="card-header">
+        <h3>Edit Picnic</h3>
+      </div>
+      <div class="card-body">
+        <form action="/picnics/<%= picnic._id %>" method="POST">
+          <div class="mb-3">
+            <label for="name" class="form-label">Picnic Name</label>
+            <input type="text" class="form-control" id="name" name="name" value="<%= picnic.name %>" required>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="date" class="form-label">Date</label>
+              <input type="date" class="form-control" id="date" name="picnic_date" value="<%= picnic.date.toISOString().split('T')[0] %>" required>
+            </div>
+            <div class="col-md-6">
+              <label for="time" class="form-label">Time</label>
+              <% 
+                const hours = picnic.date.getHours().toString().padStart(2, '0');
+                const minutes = picnic.date.getMinutes().toString().padStart(2, '0');
+                const timeValue = `${hours}:${minutes}`;
+              %>
+              <input type="time" class="form-control" id="time" name="picnic_time" value="<%= timeValue %>" required>
+            </div>
+            <!-- Hidden field to store combined date and time -->
+            <input type="hidden" id="datetime" name="date">
+          </div>
+          
+          <div class="mb-3">
+            <label for="location" class="form-label">Location</label>
+            <input type="text" class="form-control" id="location" name="location" value="<%= picnic.location %>" required>
+            
+            <div id="map-container" class="mt-3">
+              <div id="map" class="map"></div>
+            </div>
+            
+            <div id="coordinates-display" class="coordinates-display"></div>
+            
+            <!-- Hidden inputs for coordinates and zoom level -->
+            <input type="hidden" id="lat" name="lat" value="<%= picnic.coordinates ? picnic.coordinates.lat : 40.785091 %>">
+            <input type="hidden" id="lng" name="lng" value="<%= picnic.coordinates ? picnic.coordinates.lng : -73.968285 %>">
+            <input type="hidden" id="zoomLevel" name="zoomLevel" value="<%= picnic.zoomLevel || 13 %>">
+          </div>
+          
+          <!-- Amenities and Description in one row -->
+          <div class="row mb-3">
+            <!-- Amenities display div -->
+            <div class="col-md-6">
+              <label class="form-label">Nearby Amenities</label>
+              <div id="amenities-display" class="p-3 border rounded">
+                <div id="amenities-content">Loading amenities...</div>
+              </div>
+              <input type="hidden" id="amenities" name="amenities" value="<%- picnic.amenities || '' %>">
+            </div>
+            
+            <!-- Message field -->
+            <div class="col-md-6">
+              <div class="d-flex align-items-center">
+                <label for="message" class="form-label mb-0">Message</label>
+              </div>
+              <textarea class="form-control auto-resize" id="message" name="description" rows="5"><%- picnic.description %></textarea>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Attendees & Items</label>
+            <div id="items-container">
+              <% if (picnic.items && picnic.items.length > 0) { %>
+                <% picnic.items.forEach((item, index) => { %>
+                  <div class="item-row mb-2 d-flex">
+                    <div class="col-md-4 pe-2">
+                    <input type="text" class="form-control item-name" name="items[<%= index %>][name]" 
+                             value="<%= item.name %>" placeholder="Attendee Name">
+                    </div>
+                    <div class="col-md-7 pe-2">
+                      <input type="text" class="form-control item-list" name="items[<%= index %>][list]" 
+                             value="<%= item.list %>" placeholder="Items (comma-separated)" required>
+                    </div>
+                    <div class="col-md-1">
+                      <% if (index === 0) { %>
+                        <button type="button" class="btn btn-sm btn-success add-item-btn">+</button>
+                      <% } else { %>
+                        <button type="button" class="btn btn-sm btn-danger remove-item-btn">-</button>
+                      <% } %>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <div class="item-row mb-2 d-flex">
+                  <div class="col-md-4 pe-2">
+                    <input type="text" class="form-control item-name" name="items[0][name]" placeholder="Attendee Name">
+                  </div>
+                  <div class="col-md-7 pe-2">
+                    <input type="text" class="form-control item-list" name="items[0][list]" placeholder="Items (comma-separated)" required>
+                  </div>
+                  <div class="col-md-1">
+                    <button type="button" class="btn btn-sm btn-success add-item-btn">+</button>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+            <div class="form-text">Add attendees and the items they will bring</div>
+          </div>
+          
+          <input type="hidden" id="amenities-data" name="amenities-data" value="">
+          
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">Update Picnic</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

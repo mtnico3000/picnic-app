@@ -1,0 +1,159 @@
+<div class="row">
+  <div class="col-md-8">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h3><%= picnic.name %></h3>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-3 fw-bold">Message:</div>
+          <div class="col-md-9"><%- picnic.description %></div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-3 fw-bold">Date & Time:</div>
+          <div class="col-md-9">
+            <% 
+              const picnicDate = new Date(picnic.date);
+              const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+              const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+              const formattedDate = picnicDate.toLocaleDateString(undefined, dateOptions);
+              const formattedTime = picnicDate.toLocaleTimeString(undefined, timeOptions);
+            %>
+            <%= formattedDate %> at <%= formattedTime %>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-3 fw-bold">Location:</div>
+          <div class="col-md-9"><%= picnic.location %></div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-md-12">
+            <div id="map-container">
+              <div id="map" class="map"></div>
+            </div>
+            <div class="coordinates-display">
+              Latitude: <%= picnic.coordinates ? picnic.coordinates.lat.toFixed(6) : '0.000000' %>, 
+              Longitude: <%= picnic.coordinates ? picnic.coordinates.lng.toFixed(6) : '0.000000' %>
+            </div>
+            <!-- Hidden inputs for the map initialization -->
+            <input type="hidden" id="lat" value="<%= picnic.coordinates ? picnic.coordinates.lat : 40.785091 %>">
+            <input type="hidden" id="lng" value="<%= picnic.coordinates ? picnic.coordinates.lng : -73.968285 %>">
+            <input type="hidden" id="zoomLevel" value="<%= picnic.zoomLevel || 13 %>">
+            <input type="hidden" id="readonly" value="true">
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h3>Items</h3>
+      </div>
+      <div class="card-body">
+        <% if (picnic.items && picnic.items.length > 0) { %>
+          <ul class="list-group mb-4">
+            <% picnic.items.forEach(item => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong><%= item.name || 'Anonymous' %></strong>
+                <% if (item.list) { %>
+                  <span class="text-end"><%= item.list %></span>
+                <% } else { %>
+                  <span class="text-muted">No items specified</span>
+                <% } %>
+              </li>
+            <% }); %>
+          </ul>
+        <% } else { %>
+          <p>No attendees or items added yet.</p>
+        <% } %>
+        
+        <hr>
+        <form action="/picnics/<%= picnic._id %>/add-item" method="POST" class="mt-3">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="attendeeName" class="form-label">Your Name</label>
+              <input type="text" class="form-control item-name" id="attendeeName" name="name" placeholder="Enter your name">
+            </div>
+            <div class="col-md-6">
+              <label for="attendeeItems" class="form-label">Items You'll Bring</label>
+              <input type="text" class="form-control" id="attendeeItems" name="list" placeholder="Enter items separated by commas" required>
+            </div>
+          </div>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-plus-circle"></i> Add My Items
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Nearby Amenities -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h3>Nearby Amenities</h3>
+      </div>
+      <div class="card-body">
+        <div id="amenities-content" style="background-color: #f0f0f0; border: 1px solid #dee2e6; border-radius: 5px; padding: 10px;">
+          <% if (picnic.amenities && picnic.amenities.length > 0) { %>
+            <%- picnic.amenities.replace(/\n/g, '<br>') %>
+          <% } else { %>
+            <div>No amenities data available</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Share Section -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h3>Share</h3>
+      </div>
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <code id="share-url" class="flex-grow-1 p-2 bg-light border rounded"><%= typeof baseUrl !== 'undefined' ? baseUrl : 'http://localhost:3001' %><%= typeof req !== 'undefined' ? req.originalUrl : '/picnics/' + picnic._id %></code>
+          <button id="copy-url-btn" class="btn btn-sm btn-outline-primary ms-2" title="Copy URL">
+            <i class="bi bi-clipboard"></i>
+          </button>
+        </div>
+        <div id="copy-success" class="mt-2 text-success" style="display: none;">
+          URL copied to clipboard!
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('copy-url-btn').addEventListener('click', function() {
+    const shareUrl = document.getElementById('share-url').textContent;
+    
+    // Create a temporary textarea element to copy the text
+    const textarea = document.createElement('textarea');
+    textarea.value = shareUrl;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    
+    // Select and copy the text
+    textarea.select();
+    document.execCommand('copy');
+    
+    // Remove the temporary textarea
+    document.body.removeChild(textarea);
+    
+    // Show success message
+    const copySuccess = document.getElementById('copy-success');
+    copySuccess.style.display = 'block';
+    
+    // Hide success message after 3 seconds
+    setTimeout(function() {
+      copySuccess.style.display = 'none';
+    }, 3000);
+  });
+</script>

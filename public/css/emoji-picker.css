@@ -1,0 +1,80 @@
+/* Emoji Picker Styles */
+
+.emoji-picker-btn {
+  margin-left: 8px;
+  font-size: 0.9rem;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.emoji-picker-container {
+  width: 320px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.emoji-picker-container .card-body {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.emoji-btn {
+  font-size: 1.5rem;
+  width: 48px;
+  height: 48px;
+  margin: 2px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.emoji-btn:hover {
+  transform: scale(1.2);
+  background-color: #f8f9fa;
+  z-index: 1;
+}
+
+/* New styles for the emoji list layout */
+.emoji-list {
+  width: 100%;
+}
+
+.emoji-category-title {
+  margin-top: 10px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #495057;
+  padding-left: 4px;
+}
+
+.emoji-section {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.emoji-section-divider {
+  margin: 15px 0;
+  border-top: 1px solid #dee2e6;
+}
+
+/* Make sure emoji buttons display properly on all browsers */
+.emoji-btn {
+  font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Apple Color Emoji", 
+               "Noto Color Emoji", "Android Emoji", sans-serif;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .emoji-picker-container {
+    width: 280px;
+  }
+  
+  .emoji-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+}

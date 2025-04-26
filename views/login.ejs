@@ -1,0 +1,26 @@
+<div class="row">
+  <div class="col-md-6 offset-md-3">
+    <div class="card">
+      <div class="card-header">
+        <h2>Login</h2>
+      </div>
+      <div class="card-body">
+        <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+          <div class="alert alert-danger">
+            <%= errorMessage %>
+          </div>
+        <% } %>
+        
+        <form action="/login" method="POST">
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" autocomplete="current-password" required>
+            <div class="form-text">Enter the application password to access protected pages.</div>
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+          <input type="hidden" name="_csrf" value="<%= typeof _csrf !== 'undefined' ? _csrf : '' %>">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Node.js application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: picnic-app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - SESSION_SECRET=picnic-app-secret-key-change-in-production
+      - DB_URI=mongodb://mongo:27017/picnic-app
+    depends_on:
+      - mongo
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - picnic-network
+    # Initialize the database and then start the application
+    command: >
+      sh -c "
+        echo 'Waiting for MongoDB to start...' &&
+        sleep 5 &&
+        echo 'Running database initialization script...' &&
+        node scripts/docker-init-db.js &&
+        echo 'Starting application...' &&
+        npm start
+      "
+
+  # MongoDB service
+  mongo:
+    image: mongo:6-focal
+    container_name: picnic-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - picnic-network
+
+# Networks
+networks:
+  picnic-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  mongo-data:
+    driver: local

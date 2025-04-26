@@ -1,0 +1,181 @@
+<% if (typeof dbConnected !== 'undefined' && !dbConnected) { %>
+  <div class="alert alert-warning">
+    <strong>Note:</strong> Running in demo mode. Database is not connected. 
+    This picnic will not be saved permanently.
+  </div>
+<% } %>
+
+<form action="/picnics" method="POST">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h3>Create New Picnic</h3>
+          <a href="/picnics" class="btn btn-secondary">Back to All Picnics</a>
+        </div>
+        <div class="card-body">
+          <!-- Picnic Name -->
+          <div class="row mb-3">
+            <div class="col-md-3 fw-bold">Picnic Name:</div>
+            <div class="col-md-9">
+              <div class="field-container">
+                <input type="text" class="form-control form-control-lg" id="name" name="name" required>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Message field -->
+          <div class="row mb-3">
+            <div class="col-md-3 fw-bold">Message:</div>
+            <div class="col-md-9">
+              <div class="field-container">
+                <textarea class="form-control auto-resize" id="message" name="description" rows="2" placeholder="Picnic time! 😎"></textarea>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Date and Time -->
+          <div class="row mb-3">
+            <div class="col-md-3 fw-bold">Date & Time:</div>
+            <div class="col-md-9">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="field-container">
+                    <input type="date" class="form-control" id="date" name="date" required>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="field-container">
+                    <input type="time" class="form-control" id="time" name="picnic_time" placeholder="18:00" value="18:00" required>
+                  </div>
+                </div>
+              </div>
+              <!-- Hidden field to store combined date and time -->
+              <input type="hidden" id="datetime" name="datetime">
+            </div>
+          </div>
+          
+          <!-- Location -->
+          <div class="row mb-3">
+            <div class="col-md-3 fw-bold">Location:</div>
+            <div class="col-md-9">
+              <div class="field-container">
+                <textarea class="form-control" id="location" name="location" rows="2" required></textarea>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Map -->
+          <div class="row mb-3">
+            <div class="col-md-12">
+              <div id="map-container" class="mt-2">
+                <div id="map" class="map"></div>
+              </div>
+              
+              <div id="coordinates-display" class="coordinates-display"></div>
+              
+            <!-- Hidden inputs for coordinates and zoom level -->
+            <input type="hidden" id="lat" name="lat" value="46.511870">
+            <input type="hidden" id="lng" name="lng" value="6.603551">
+            <input type="hidden" id="zoomLevel" name="zoomLevel" value="15">
+            </div>
+          </div>
+          
+          <input type="hidden" id="amenities-data" name="amenities-data" value="">
+          <input type="hidden" id="amenities" name="amenities" value="">
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3>Attendees & Items</h3>
+        </div>
+        <div class="card-body">
+          <div id="items-container">
+            <div class="item-row mb-2">
+              <div class="row mb-2">
+                <div class="col-md-6">
+                  <input type="text" class="form-control item-name" name="items[0][name]" placeholder="<%= typeof configName !== 'undefined' ? configName : 'Attendee Name' %>">
+                </div>
+                <div class="col-md-6">
+                  <input type="text" class="form-control item-list" name="items[0][list]" placeholder="Items (comma-separated)" required>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="text-end mb-3">
+            <button type="button" class="btn btn-sm btn-success add-item-btn" style="font-size: 1.2rem;">+</button>
+          </div>
+          
+          <div class="form-text">Add attendees and the items they will bring</div>
+        </div>
+      </div>
+      
+      <!-- Nearby Amenities -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3>Nearby Amenities</h3>
+        </div>
+        <div class="card-body">
+          <div id="amenities-display" class="p-2 border rounded">
+            <div id="amenities-content">Loading amenities...</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="d-grid gap-2 mt-4">
+        <button type="submit" class="btn btn-success">Create Picnic</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add item functionality for the new layout
+    const itemsContainer = document.getElementById('items-container');
+    const addItemBtn = document.querySelector('.add-item-btn');
+    
+    if (itemsContainer && addItemBtn) {
+      // Add new item row
+      addItemBtn.addEventListener('click', function() {
+        const itemCount = itemsContainer.querySelectorAll('.item-row').length;
+        
+        const newRow = document.createElement('div');
+        newRow.className = 'item-row mb-2';
+        newRow.innerHTML = `
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <input type="text" class="form-control item-name" name="items[${itemCount}][name]" placeholder="Name">
+            </div>
+            <div class="col-md-5 pe-0">
+              <input type="text" class="form-control item-list" name="items[${itemCount}][list]" placeholder="Items (comma-separated)" required>
+            </div>
+            <div class="col-md-1 ps-0 text-start">
+              <button type="button" class="btn btn-sm btn-success remove-item-btn" style="font-size: 1.2rem;">-</button>
+            </div>
+          </div>
+        `;
+        
+        itemsContainer.appendChild(newRow);
+        
+        // Add event listener to the new remove button
+        const removeBtn = newRow.querySelector('.remove-item-btn');
+        removeBtn.addEventListener('click', function() {
+          newRow.remove();
+        });
+      });
+      
+      // Add event listeners to existing remove buttons
+      const removeButtons = itemsContainer.querySelectorAll('.remove-item-btn');
+      removeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          this.closest('.item-row').remove();
+        });
+      });
+    }
+  });
+</script>
