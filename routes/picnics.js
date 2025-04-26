@@ -87,7 +87,7 @@ router.post('/', async (req, res) => {
   // Create picnic object from form data
   const picnicData = {
     name: req.body.name,
-    date: req.body.date,
+    date: req.body.datetime || req.body.date, // Use datetime if available, fallback to date
     location: req.body.location,
     coordinates: {
       lat: parseFloat(req.body.lat) || 0,
@@ -217,7 +217,7 @@ router.post('/:id', async (req, res) => {
   try {
     const updatedPicnic = {
       name: req.body.name,
-      date: req.body.date,
+      date: req.body.datetime || req.body.date, // Use datetime if available, fallback to date
       location: req.body.location,
       coordinates: {
         lat: parseFloat(req.body.lat) || 0,

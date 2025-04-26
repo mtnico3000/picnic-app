@@ -70,9 +70,10 @@ router.post('/', async (req, res) => {
         config = new Config();
       }
       
-      // Update the name and password
+      // Update the name, password, and amenitiesDistance
       config.name = req.body.name;
       config.password = req.body.password;
+      config.amenitiesDistance = parseInt(req.body.amenitiesDistance) || 1000;
       
       // Save the updated config
       await config.save();

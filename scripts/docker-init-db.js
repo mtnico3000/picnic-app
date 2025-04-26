@@ -43,6 +43,7 @@ const defaultConfig = {
   allowPublicAccess: true,
   maxPicnicsPerUser: 10,
   defaultEmoji: '🧺',
+  amenitiesDistance: 1000,
   initialized: true
 };
 

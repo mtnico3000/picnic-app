@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Add item functionality
   initItemsHandling();
+  
+  // Handle form submission to combine date and time
+  initFormSubmission();
 
   // Confirmation for delete actions
   const deleteButtons = document.querySelectorAll('.btn-danger[type="submit"]');
@@ -64,6 +67,96 @@ document.addEventListener('DOMContentLoaded', function() {
 
   console.log('Picnic App JavaScript initialized');
 });
+
+// Function to handle separate date and time inputs
+function initDateTimePickers() {
+  // Find forms with date and time inputs
+  const forms = document.querySelectorAll('form');
+  
+  forms.forEach(form => {
+    const dateInput = form.querySelector('input[type="date"]');
+    const timeInput = form.querySelector('input[type="time"]');
+    const datetimeInput = form.querySelector('input[type="datetime-local"]');
+    
+    if (dateInput && timeInput && datetimeInput) {
+      // Initialize with existing datetime value if available
+      if (datetimeInput.value) {
+        const datetime = new Date(datetimeInput.value);
+        dateInput.value = datetime.toISOString().split('T')[0];
+        timeInput.value = datetime.toTimeString().substring(0, 5);
+      }
+      
+      // Update datetime-local input when date or time changes
+      const updateDatetime = () => {
+        if (dateInput.value && timeInput.value) {
+          datetimeInput.value = `${dateInput.value}T${timeInput.value}`;
+        }
+      };
+      
+      dateInput.addEventListener('change', updateDatetime);
+      timeInput.addEventListener('change', updateDatetime);
+    }
+  });
+}
+
+// Function to initialize auto-resize for textareas
+function initAutoResizeTextareas() {
+  const textareas = document.querySelectorAll('textarea[data-auto-resize]');
+  
+  textareas.forEach(textarea => {
+    // Set initial height
+    textarea.style.height = 'auto';
+    textarea.style.height = (textarea.scrollHeight) + 'px';
+    
+    // Resize on input
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+  });
+}
+
+// Function to initialize items handling (for picnic items)
+function initItemsHandling() {
+  const itemsContainer = document.getElementById('items-container');
+  const addItemButton = document.getElementById('add-item-button');
+  
+  if (!itemsContainer || !addItemButton) return;
+  
+  // Add new item
+  addItemButton.addEventListener('click', function() {
+    const itemCount = itemsContainer.querySelectorAll('.item-row').length;
+    
+    const newRow = document.createElement('div');
+    newRow.className = 'item-row mb-2 d-flex align-items-center';
+    newRow.innerHTML = `
+      <input type="text" name="items[${itemCount}][name]" class="form-control me-2" placeholder="Item name" required>
+      <input type="number" name="items[${itemCount}][quantity]" class="form-control me-2" placeholder="Qty" min="1" value="1" style="width: 80px;" required>
+      <select name="items[${itemCount}][assignedTo]" class="form-control me-2" style="width: 150px;">
+        <option value="">Unassigned</option>
+        <option value="Me">Me</option>
+      </select>
+      <button type="button" class="btn btn-outline-danger remove-item-button">
+        <i class="bi bi-trash"></i>
+      </button>
+    `;
+    
+    itemsContainer.appendChild(newRow);
+    
+    // Add event listener to the new remove button
+    const removeButton = newRow.querySelector('.remove-item-button');
+    removeButton.addEventListener('click', function() {
+      newRow.remove();
+    });
+  });
+  
+  // Remove existing items
+  itemsContainer.querySelectorAll('.remove-item-button').forEach(button => {
+    button.addEventListener('click', function() {
+      this.closest('.item-row').remove();
+    });
+  });
+}
 
 // Map initialization and handling
 function initMap() {
@@ -168,21 +261,21 @@ function initMap() {
           updateCoordinates({lat: userLat, lng: userLng});
           
           // Query for amenities at the current location
-          queryAmenities(map, amenityMarkersGroup, userLat, userLng);
+          window.queryAmenities(map, amenityMarkersGroup, userLat, userLng);
         },
         function(error) {
           console.error('Error getting location:', error.message);
           // If we can't get the user's location, query amenities at the default location
-          queryAmenities(map, amenityMarkersGroup, lat, lng);
+          window.queryAmenities(map, amenityMarkersGroup, lat, lng);
         }
       );
     } else {
       // If geolocation is not available, query amenities at the default location
-      queryAmenities(map, amenityMarkersGroup, lat, lng);
+      window.queryAmenities(map, amenityMarkersGroup, lat, lng);
     }
   } else {
     // Query amenities at the current map location
-    queryAmenities(map, amenityMarkersGroup, lat, lng);
+    window.queryAmenities(map, amenityMarkersGroup, lat, lng);
   }
   
   // Update coordinates display and hidden inputs when marker is moved
@@ -201,7 +294,7 @@ function initMap() {
     reverseGeocode(latlng);
     
     // Query for amenities at the new location
-    queryAmenities(map, amenityMarkersGroup, latlng.lat, latlng.lng);
+    window.queryAmenities(map, amenityMarkersGroup, latlng.lat, latlng.lng);
     
     // Update amenities content with amenities list
     updateAmenitiesList(latlng.lat, latlng.lng);
@@ -233,22 +326,16 @@ function initMap() {
     });
   }
   
-  // Update amenities when map is moved or zoomed
+  // Update map view when it's moved or zoomed
   map.on('moveend', function() {
     // If in read-only mode, recenter the map on the marker after moving
     if (isReadOnly && !isAdjusting) {
       isAdjusting = true; // Set flag to prevent infinite loop
       const markerPos = marker.getLatLng();
       map.setView(markerPos, map.getZoom(), { animate: true });
-      queryAmenities(map, amenityMarkersGroup, markerPos.lat, markerPos.lng);
-      updateAmenitiesList(markerPos.lat, markerPos.lng);
       // Reset flag after a short delay to ensure the view has settled
       setTimeout(() => { isAdjusting = false; }, 100);
     } else if (!isReadOnly) {
-      const center = map.getCenter();
-      queryAmenities(map, amenityMarkersGroup, center.lat, center.lng);
-      updateAmenitiesList(center.lat, center.lng);
-      
       // Update picnic name when map is moved (if we're on create page)
       if (isCreatePage) {
         setTimeout(updatePicnicName, 500); // Small delay to ensure location is updated first
@@ -267,15 +354,9 @@ function initMap() {
       isAdjusting = true; // Set flag to prevent infinite loop
       const markerPos = marker.getLatLng();
       map.setView(markerPos, map.getZoom(), { animate: true });
-      queryAmenities(map, amenityMarkersGroup, markerPos.lat, markerPos.lng);
-      updateAmenitiesList(markerPos.lat, markerPos.lng);
       // Reset flag after a short delay to ensure the view has settled
       setTimeout(() => { isAdjusting = false; }, 100);
     } else if (!isReadOnly) {
-      const center = map.getCenter();
-      queryAmenities(map, amenityMarkersGroup, center.lat, center.lng);
-      updateAmenitiesList(center.lat, center.lng);
-      
       // Update picnic name when map is zoomed (if we're on create page)
       if (isCreatePage) {
         setTimeout(updatePicnicName, 500); // Small delay to ensure location is updated first
@@ -411,7 +492,7 @@ function initMap() {
     }
   }
   
-  // Track if user manually edits the name field
+// Track if user manually edits the name field
   const nameInput = document.getElementById('name');
   if (nameInput && isCreatePage) {
     // Explicitly set the userEdited attribute to 'false' as a string
@@ -434,832 +515,78 @@ function initMap() {
   }
 }
 
-// Function to update the amenities display with a bullet list of amenities
-function updateAmenitiesList(lat, lng) {
-  const amenitiesField = document.getElementById('amenities');
-  const amenitiesContent = document.getElementById('amenities-content');
+// Function to handle form submission and combine date and time
+function initFormSubmission() {
+  const form = document.querySelector('form[action="/picnics"]');
+  if (!form) return;
   
-  console.log('updateAmenitiesList called with:', lat, lng);
-  console.log('amenitiesContent element:', amenitiesContent);
-  
-  // Show loading message in the amenities content
-  if (amenitiesContent) {
-    amenitiesContent.innerHTML = '<div class="text-center"><i class="bi bi-arrow-repeat spinning"></i> Loading amenities...</div>';
+  form.addEventListener('submit', function(e) {
+    // Get the date and time inputs
+    const dateInput = document.getElementById('date');
+    const timeInput = document.getElementById('time');
+    const datetimeInput = document.getElementById('datetime');
+    const nameInput = document.getElementById('name');
+    const locationInput = document.getElementById('location');
     
-    // Add a border to make it visible
-    amenitiesContent.style.border = '1px solid var(--light-border)';
-    amenitiesContent.style.padding = '10px';
-    amenitiesContent.style.borderRadius = '5px';
-    amenitiesContent.style.backgroundColor = 'var(--light-surface-lighter)';
-  } else {
-    console.error('amenities-content element not found');
-  }
-  
-  // Build Overpass API query for a 1000 meter radius
-  const radius = 1000; // Fixed 1000 meter radius as requested
-  
-  const overpassQuery = `
-    [out:json][timeout:25];
-    (
-      node["leisure"="firepit"](around:${radius},${lat},${lng});
-      node["amenity"="fireplace"](around:${radius},${lat},${lng});
-      node["amenity"="bbq"](around:${radius},${lat},${lng});
-      node["amenity"="drinking_water"](around:${radius},${lat},${lng});
-      node["drinking_water"="yes"](around:${radius},${lat},${lng});
-      node["tourism"="picnic_site"](around:${radius},${lat},${lng});
-      node["leisure"="picnic_table"](around:${radius},${lat},${lng});
-      node["amenity"="toilets"](around:${radius},${lat},${lng});
-      node["amenity"="shower"](around:${radius},${lat},${lng});
-      node["amenity"="waste_basket"](around:${radius},${lat},${lng});
-      node["amenity"="waste_disposal"](around:${radius},${lat},${lng});
-      node["amenity"="recycling"](around:${radius},${lat},${lng});
-      node["amenity"="shelter"](around:${radius},${lat},${lng});
-      node["amenity"="bench"](around:${radius},${lat},${lng});
-      node["tourism"="camp_site"](around:${radius},${lat},${lng});
-    );
-    out body;
-    >;
-    out skel qt;
-  `;
-  
-  // URL encode the query
-  const encodedQuery = encodeURIComponent(overpassQuery);
-  const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodedQuery}`;
-  
-  // Fetch amenities data from Overpass API
-  fetch(overpassUrl)
-    .then(response => response.json())
-    .then(data => {
-      // Process the results
-      const amenities = {
-        firepit: 0,
-        bbq: 0,
-        water: 0,
-        picnicSite: 0,
-        picnicTable: 0,
-        toilets: 0,
-        shower: 0,
-        wasteBasket: 0,
-        wasteDisposal: 0,
-        recycling: 0,
-        shelter: 0,
-        bench: 0,
-        campSite: 0,
-        playground: 0,
-        park: 0
-      };
-      
-      if (data && data.elements) {
-        data.elements.forEach(element => {
-          if (element.type === 'node') {
-            const tags = element.tags || {};
-            
-            // Count each type of amenity
-            if (tags.leisure === 'firepit' || tags.amenity === 'fireplace') {
-              amenities.firepit++;
-            } else if (tags.amenity === 'bbq') {
-              amenities.bbq++;
-            } else if (tags.amenity === 'drinking_water' || tags.drinking_water === 'yes') {
-              amenities.water++;
-            } else if (tags.tourism === 'picnic_site') {
-              amenities.picnicSite++;
-            } else if (tags.leisure === 'picnic_table') {
-              amenities.picnicTable++;
-            } else if (tags.amenity === 'toilets') {
-              amenities.toilets++;
-            } else if (tags.amenity === 'shower') {
-              amenities.shower++;
-            } else if (tags.amenity === 'waste_basket') {
-              amenities.wasteBasket++;
-            } else if (tags.amenity === 'waste_disposal') {
-              amenities.wasteDisposal++;
-            } else if (tags.amenity === 'recycling') {
-              amenities.recycling++;
-            } else if (tags.amenity === 'shelter') {
-              amenities.shelter++;
-            } else if (tags.amenity === 'bench') {
-              amenities.bench++;
-            } else if (tags.tourism === 'camp_site') {
-              amenities.campSite++;
-            } else if (tags.leisure === 'playground') {
-              amenities.playground++;
-            } else if (tags.leisure === 'park') {
-              amenities.park++;
-            }
-          }
-        });
-      }
-      
-      // Create a colored bullet list of amenities
-      let bulletList = '';
-      let foundAmenities = false;
-      
-      // Define colors for each amenity type
-      const amenityColors = {
-        firepit: '#dc3545',
-        bbq: '#fd7e14',
-        water: '#0d6efd',
-        picnicSite: '#198754',
-        picnicTable: '#6610f2',
-        toilets: '#6c757d',
-        shower: '#20c997',
-        wasteBasket: '#ffc107',
-        wasteDisposal: '#adb5bd',
-        recycling: '#007bff',
-        shelter: '#6f42c1',
-        bench: '#17a2b8',
-        campSite: '#28a745',
-        playground: '#6c757d',
-        park: '#198754'
-      };
-      
-      if (amenities.firepit > 0) {
-        bulletList += `• <span style="color: ${amenityColors.firepit}">Fire Pits</span>: ${amenities.firepit}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.bbq > 0) {
-        bulletList += `• <span style="color: ${amenityColors.bbq}">BBQs</span>: ${amenities.bbq}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.water > 0) {
-        bulletList += `• <span style="color: ${amenityColors.water}">Drinking Water</span>: ${amenities.water}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.picnicSite > 0) {
-        bulletList += `• <span style="color: ${amenityColors.picnicSite}">Picnic Sites</span>: ${amenities.picnicSite}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.picnicTable > 0) {
-        bulletList += `• <span style="color: ${amenityColors.picnicTable}">Picnic Tables</span>: ${amenities.picnicTable}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.toilets > 0) {
-        bulletList += `• <span style="color: ${amenityColors.toilets}">Toilets</span>: ${amenities.toilets}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.shower > 0) {
-        bulletList += `• <span style="color: ${amenityColors.shower}">Showers</span>: ${amenities.shower}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.wasteBasket > 0) {
-        bulletList += `• <span style="color: ${amenityColors.wasteBasket}">Waste Baskets</span>: ${amenities.wasteBasket}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.wasteDisposal > 0) {
-        bulletList += `• <span style="color: ${amenityColors.wasteDisposal}">Waste Disposal</span>: ${amenities.wasteDisposal}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.recycling > 0) {
-        bulletList += `• <span style="color: ${amenityColors.recycling}">Recycling</span>: ${amenities.recycling}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.shelter > 0) {
-        bulletList += `• <span style="color: ${amenityColors.shelter}">Shelters</span>: ${amenities.shelter}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.bench > 0) {
-        bulletList += `• <span style="color: ${amenityColors.bench}">Benches</span>: ${amenities.bench}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.campSite > 0) {
-        bulletList += `• <span style="color: ${amenityColors.campSite}">Camp Sites</span>: ${amenities.campSite}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.playground > 0) {
-        bulletList += `• <span style="color: ${amenityColors.playground}">Playgrounds</span>: ${amenities.playground}\n`;
-        foundAmenities = true;
-      }
-      
-      if (amenities.park > 0) {
-        bulletList += `• <span style="color: ${amenityColors.park}">Parks</span>: ${amenities.park}\n`;
-        foundAmenities = true;
-      }
-      
-      if (!foundAmenities) {
-        bulletList += '• No amenities found in this area.\n';
-      }
-      
-      
-      // Update the amenities content div with the colored amenities list
-      if (amenitiesContent) {
-        // Convert newlines to <br> tags for HTML display
-        const htmlBulletList = bulletList.replace(/\n/g, '<br>');
-        amenitiesContent.innerHTML = htmlBulletList || '<p>No amenities found in this area.</p>';
-        console.log('Updated amenitiesContent with:', htmlBulletList);
-      }
-      
-      // Update the hidden amenities field with the same data
-      if (amenitiesField) {
-        amenitiesField.value = bulletList;
-        console.log('Updated amenities field with:', bulletList);
-      }
-      
-      // For debugging purposes, log the value of the amenities field
-      console.log('Amenities field value:', amenitiesField ? amenitiesField.value : 'amenitiesField not found');
-      
-      // Remove any existing amenities text that might have been added outside the amenities-content div
-      // This is a more aggressive approach to remove the second instance of amenities
-      document.querySelectorAll('.card-body').forEach(cardBody => {
-        // Get all text nodes in the card body
-        const walker = document.createTreeWalker(
-          cardBody,
-          NodeFilter.SHOW_TEXT,
-          null,
-          false
-        );
+    // Ensure the name field has a value before submission
+    if (nameInput && (!nameInput.value || nameInput.value.trim() === '')) {
+      // If name is empty, use the location value
+      if (locationInput && locationInput.value) {
+        // Extract street name and city/town/village from the location
+        let formattedLocation = locationInput.value;
         
-        const nodesToRemove = [];
-        let node;
-        
-        // Find text nodes that contain amenities information
-        while (node = walker.nextNode()) {
-          if (node.textContent.includes('Drinking Water') && 
-              node.textContent.includes('Picnic Tables') &&
-              node.parentNode.id !== 'amenities-content' &&
-              !node.parentNode.closest('#amenities-display')) {
-            nodesToRemove.push(node);
+        // Try to format the location to "street name, city/town/village"
+        try {
+          // Split the location by commas
+          const locationParts = locationInput.value.split(',');
+          if (locationParts.length >= 2) {
+            // First part is usually the street name
+            const streetName = locationParts[0].trim();
+            // Second part is usually the city/town/village
+            const cityTownVillage = locationParts[1].trim();
+            formattedLocation = `${streetName}, ${cityTownVillage}`;
           }
+        } catch (e) {
+          console.error('Error formatting location:', e);
         }
         
-        // Remove the found nodes
-        nodesToRemove.forEach(node => {
-          if (node.parentNode) {
-            node.parentNode.removeChild(node);
-          }
-        });
-      });
-    })
-    .catch(error => {
-      console.error('Error fetching amenities for description:', error);
-      if (amenitiesContent) {
-        amenitiesContent.innerHTML = '<p>Error loading amenities. Please try again.</p>';
+        // Truncate location if it's too long
+        const truncatedLocation = formattedLocation.length > 50 
+          ? formattedLocation.substring(0, 50) 
+          : formattedLocation;
+        
+        console.log('Setting name from location before submit:', truncatedLocation);
+        nameInput.value = truncatedLocation;
+      } else {
+        // If no location, use a default name
+        nameInput.value = "New Picnic";
+        console.log('Setting default name before submit: New Picnic');
+      }
+    }
+    
+    // Check for empty attendee name fields and set them to their placeholder value
+    const attendeeInputs = form.querySelectorAll('.item-name');
+    attendeeInputs.forEach(input => {
+      if (!input.value || input.value.trim() === '') {
+        // Get the placeholder value
+        const placeholderValue = input.getAttribute('placeholder');
+        if (placeholderValue) {
+          console.log('Setting empty attendee name to placeholder:', placeholderValue);
+          input.value = placeholderValue;
+        }
       }
     });
-}
-
-// Function to handle separate date and time inputs
-function initDateTimePickers() {
-  // Find forms with date and time inputs
-  const forms = document.querySelectorAll('form');
-  
-  forms.forEach(form => {
-    const dateInput = form.querySelector('input[name="picnic_date"]');
-    const timeInput = form.querySelector('input[name="picnic_time"]');
-    const datetimeInput = form.querySelector('input[name="date"]');
     
     if (dateInput && timeInput && datetimeInput) {
-      // Set default date to today if empty
-      if (!dateInput.value) {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        dateInput.value = `${year}-${month}-${day}`;
+      // Combine date and time
+      if (dateInput.value && timeInput.value) {
+        datetimeInput.value = `${dateInput.value}T${timeInput.value}`;
+        console.log('Combined datetime:', datetimeInput.value);
+      } else {
+        console.error('Date or time is missing');
+        e.preventDefault(); // Prevent form submission if date or time is missing
+        alert('Please select both date and time');
       }
-      
-      // Set default time to 18:00 if empty
-      if (!timeInput.value) {
-        timeInput.value = '18:00';
-      }
-      
-      // Combine date and time before form submission
-      form.addEventListener('submit', function(e) {
-        // Get the date and time values
-        const dateValue = dateInput.value;
-        const timeValue = timeInput.value;
-        
-        if (dateValue && timeValue) {
-          // Combine them into a single datetime string
-          datetimeInput.value = `${dateValue}T${timeValue}:00`;
-        }
-        
-        // Check if the first attendee name field is empty and use placeholder if needed
-        const firstAttendeeInput = form.querySelector('.item-name');
-        if (firstAttendeeInput && firstAttendeeInput.value.trim() === '') {
-          // Get the placeholder value
-          const placeholderValue = firstAttendeeInput.getAttribute('placeholder');
-          
-          // If the placeholder is not "Attendee Name" (meaning it's the configName), use it
-          if (placeholderValue && placeholderValue !== 'Attendee Name') {
-            firstAttendeeInput.value = placeholderValue;
-          }
-        }
-      });
     }
   });
-}
-
-// Function to initialize auto-resize for textareas
-function initAutoResizeTextareas() {
-  const textareas = document.querySelectorAll('.auto-resize');
-  
-  // Function to adjust textarea height based on content
-  function adjustHeight(textarea) {
-    // Reset height to auto to get the correct scrollHeight
-    textarea.style.height = 'auto';
-    // Set the height to match the content (plus a small buffer)
-    textarea.style.height = (textarea.scrollHeight + 2) + 'px';
-  }
-  
-  // Initialize all textareas
-  textareas.forEach(textarea => {
-    // Set initial height
-    adjustHeight(textarea);
-    
-    // Add event listeners for input and change events
-    textarea.addEventListener('input', function() {
-      adjustHeight(this);
-    });
-    
-    textarea.addEventListener('change', function() {
-      adjustHeight(this);
-    });
-    
-    // Also adjust when window is resized
-    window.addEventListener('resize', function() {
-      adjustHeight(textarea);
-    });
-  });
-  
-  // Add a MutationObserver to handle dynamically added textareas
-  const observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-      if (mutation.addedNodes && mutation.addedNodes.length > 0) {
-        mutation.addedNodes.forEach(function(node) {
-          if (node.nodeType === 1) { // Element node
-            const newTextareas = node.querySelectorAll('.auto-resize');
-            if (newTextareas.length > 0) {
-              newTextareas.forEach(textarea => {
-                adjustHeight(textarea);
-                textarea.addEventListener('input', function() {
-                  adjustHeight(this);
-                });
-              });
-            } else if (node.classList && node.classList.contains('auto-resize')) {
-              adjustHeight(node);
-              node.addEventListener('input', function() {
-                adjustHeight(this);
-              });
-            }
-          }
-        });
-      }
-    });
-  });
-  
-  // Start observing the document body for changes
-  observer.observe(document.body, { childList: true, subtree: true });
-}
-
-// Function to handle adding and removing item rows
-function initItemsHandling() {
-  const itemsContainer = document.getElementById('items-container');
-  if (!itemsContainer) return;
-  
-  // Function to add a new item row
-  function addItemRow() {
-    // Get the current number of rows
-    const currentRows = itemsContainer.querySelectorAll('.item-row').length;
-    
-    // Create a new row
-    const newRow = document.createElement('div');
-    newRow.className = 'item-row mb-2 d-flex';
-    
-    // Create name input
-    const nameCol = document.createElement('div');
-    nameCol.className = 'col-md-4 pe-2';
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.className = 'form-control item-name';
-    nameInput.name = `items[${currentRows}][name]`;
-    nameInput.placeholder = `Attendee Name ${currentRows + 1}`;
-    nameCol.appendChild(nameInput);
-    
-    // Create items input
-    const itemsCol = document.createElement('div');
-    itemsCol.className = 'col-md-7 pe-2';
-    const itemsInput = document.createElement('input');
-    itemsInput.type = 'text';
-    itemsInput.className = 'form-control item-list';
-    itemsInput.name = `items[${currentRows}][list]`;
-    itemsInput.placeholder = `Items ${currentRows + 1} (comma-separated)`;
-    itemsCol.appendChild(itemsInput);
-    
-    // Create button column
-    const buttonCol = document.createElement('div');
-    buttonCol.className = 'col-md-1';
-    const removeButton = document.createElement('button');
-    removeButton.type = 'button';
-    removeButton.className = 'btn btn-sm btn-danger remove-item-btn';
-    removeButton.textContent = '-';
-    removeButton.addEventListener('click', function() {
-      itemsContainer.removeChild(newRow);
-      renumberRows();
-    });
-    buttonCol.appendChild(removeButton);
-    
-    // Add all columns to the row
-    newRow.appendChild(nameCol);
-    newRow.appendChild(itemsCol);
-    newRow.appendChild(buttonCol);
-    
-    // Add the row to the container
-    itemsContainer.appendChild(newRow);
-  }
-  
-  // Function to renumber all rows after deletion
-  function renumberRows() {
-    const rows = itemsContainer.querySelectorAll('.item-row');
-    rows.forEach((row, index) => {
-      const nameInput = row.querySelector('.item-name');
-      const itemsInput = row.querySelector('.item-list');
-      
-      if (nameInput) {
-        nameInput.name = `items[${index}][name]`;
-        if (nameInput.placeholder.startsWith('Attendee Name')) {
-          nameInput.placeholder = `Attendee Name ${index + 1}`;
-        }
-      }
-      
-      if (itemsInput) {
-        itemsInput.name = `items[${index}][list]`;
-        if (itemsInput.placeholder.startsWith('Items')) {
-          itemsInput.placeholder = `Items ${index + 1} (comma-separated)`;
-        }
-      }
-      
-      // Update the button in the first row to be an add button
-      if (index === 0) {
-        const buttonCol = row.querySelector('.col-md-1');
-        if (buttonCol) {
-          buttonCol.innerHTML = '';
-          const addButton = document.createElement('button');
-          addButton.type = 'button';
-          addButton.className = 'btn btn-sm btn-success add-item-btn';
-          addButton.textContent = '+';
-          addButton.addEventListener('click', addItemRow);
-          buttonCol.appendChild(addButton);
-        }
-      }
-    });
-  }
-  
-  // Add event listeners to existing add buttons
-  const addButtons = itemsContainer.querySelectorAll('.add-item-btn');
-  addButtons.forEach(button => {
-    button.addEventListener('click', addItemRow);
-  });
-  
-  // Add event listeners to existing remove buttons
-  const removeButtons = itemsContainer.querySelectorAll('.remove-item-btn');
-  removeButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const row = this.closest('.item-row');
-      if (row) {
-        itemsContainer.removeChild(row);
-        renumberRows();
-      }
-    });
-  });
-}
-
-// Function to query and display amenities on the map using Overpass API
-function queryAmenities(map, markersGroup, lat, lng) {
-  // Clear existing amenity markers
-  markersGroup.clearLayers();
-  
-  // Define the search radius based on the map zoom level
-  const zoomLevel = map.getZoom();
-  const radius = Math.max(500, 3000 - (zoomLevel * 150)); // Adjust radius based on zoom level
-  
-  // Define circle marker options for amenities
-  const firepitMarkerOptions = {
-    radius: 8,
-    fillColor: '#dc3545',
-    color: '#dc3545',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  const bbqMarkerOptions = {
-    radius: 8,
-    fillColor: '#fd7e14',
-    color: '#fd7e14',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  const waterMarkerOptions = {
-    radius: 8,
-    fillColor: '#0d6efd',
-    color: '#0d6efd',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  // New amenity marker options
-  const picnicSiteMarkerOptions = {
-    radius: 8,
-    fillColor: '#198754',
-    color: '#198754',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  const picnicTableMarkerOptions = {
-    radius: 8,
-    fillColor: '#6610f2',
-    color: '#6610f2',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  const toiletsMarkerOptions = {
-    radius: 8,
-    fillColor: '#6c757d',
-    color: '#6c757d',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  const showerMarkerOptions = {
-    radius: 8,
-    fillColor: '#20c997',
-    color: '#20c997',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  const wasteBasketMarkerOptions = {
-    radius: 8,
-    fillColor: '#ffc107',
-    color: '#ffc107',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  const wasteDisposalMarkerOptions = {
-    radius: 8,
-    fillColor: '#adb5bd',
-    color: '#adb5bd',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  const recyclingMarkerOptions = {
-    radius: 8,
-    fillColor: '#007bff',
-    color: '#007bff',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  const shelterMarkerOptions = {
-    radius: 8,
-    fillColor: '#6f42c1',
-    color: '#6f42c1',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  const benchMarkerOptions = {
-    radius: 8,
-    fillColor: '#17a2b8',
-    color: '#17a2b8',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  const campSiteMarkerOptions = {
-    radius: 8,
-    fillColor: '#28a745',
-    color: '#28a745',
-    weight: 1,
-    opacity: 0.7,
-    fillOpacity: 0.3
-  };
-  
-  // Build Overpass API query
-  // Include all the amenities we want to display on the map
-  const overpassQuery = `
-    [out:json][timeout:25];
-    (
-      node["leisure"="firepit"](around:${radius},${lat},${lng});
-      node["amenity"="fireplace"](around:${radius},${lat},${lng});
-      node["amenity"="bbq"](around:${radius},${lat},${lng});
-      node["amenity"="drinking_water"](around:${radius},${lat},${lng});
-      node["drinking_water"="yes"](around:${radius},${lat},${lng});
-      node["tourism"="picnic_site"](around:${radius},${lat},${lng});
-      node["leisure"="picnic_table"](around:${radius},${lat},${lng});
-      node["amenity"="toilets"](around:${radius},${lat},${lng});
-      node["amenity"="shower"](around:${radius},${lat},${lng});
-      node["amenity"="waste_basket"](around:${radius},${lat},${lng});
-      node["amenity"="waste_disposal"](around:${radius},${lat},${lng});
-      node["amenity"="recycling"](around:${radius},${lat},${lng});
-      node["amenity"="shelter"](around:${radius},${lat},${lng});
-      node["amenity"="bench"](around:${radius},${lat},${lng});
-      node["tourism"="camp_site"](around:${radius},${lat},${lng});
-    );
-    out body;
-    >;
-    out skel qt;
-  `;
-  
-  // URL encode the query
-  const encodedQuery = encodeURIComponent(overpassQuery);
-  const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodedQuery}`;
-  
-  // Show loading indicator
-  const loadingIndicator = document.createElement('div');
-  loadingIndicator.id = 'amenities-loading';
-  loadingIndicator.className = 'amenities-loading';
-  loadingIndicator.innerHTML = '<i class="bi bi-arrow-repeat spinning"></i> Loading amenities...';
-  document.body.appendChild(loadingIndicator);
-  
-  // Fetch amenities data from Overpass API
-  fetch(overpassUrl)
-    .then(response => response.json())
-    .then(data => {
-      // Process the results
-      const amenitiesCount = {
-        firepit: 0,
-        bbq: 0,
-        water: 0,
-        picnicSite: 0,
-        picnicTable: 0,
-        toilets: 0,
-        shower: 0,
-        wasteBasket: 0,
-        wasteDisposal: 0,
-        recycling: 0,
-        shelter: 0,
-        bench: 0,
-        campSite: 0
-      };
-      
-      if (data && data.elements) {
-        data.elements.forEach(element => {
-          if (element.type === 'node') {
-            const nodeLat = element.lat;
-            const nodeLng = element.lon;
-            const tags = element.tags || {};
-            
-            // Check for firepit/fireplace
-            if (tags.leisure === 'firepit' || tags.amenity === 'fireplace') {
-              const marker = L.circleMarker([nodeLat, nodeLng], firepitMarkerOptions)
-                .bindPopup(`<strong>Fire Pit</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.firepit++;
-            }
-            
-            // Check for BBQ
-            else if (tags.amenity === 'bbq') {
-              const marker = L.circleMarker([nodeLat, nodeLng], bbqMarkerOptions)
-                .bindPopup(`<strong>BBQ</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.bbq++;
-            }
-            
-            // Check for drinking water
-            else if (tags.amenity === 'drinking_water' || tags.drinking_water === 'yes') {
-              const marker = L.circleMarker([nodeLat, nodeLng], waterMarkerOptions)
-                .bindPopup(`<strong>Drinking Water</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.water++;
-            }
-            
-            // Check for picnic site
-            else if (tags.tourism === 'picnic_site') {
-              const marker = L.circleMarker([nodeLat, nodeLng], picnicSiteMarkerOptions)
-                .bindPopup(`<strong>Picnic Site</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.picnicSite++;
-            }
-            
-            // Check for picnic table
-            else if (tags.leisure === 'picnic_table') {
-              const marker = L.circleMarker([nodeLat, nodeLng], picnicTableMarkerOptions)
-                .bindPopup(`<strong>Picnic Table</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.picnicTable++;
-            }
-            
-            // Check for toilets
-            else if (tags.amenity === 'toilets') {
-              const marker = L.circleMarker([nodeLat, nodeLng], toiletsMarkerOptions)
-                .bindPopup(`<strong>Toilets</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.toilets++;
-            }
-            
-            // Check for shower
-            else if (tags.amenity === 'shower') {
-              const marker = L.circleMarker([nodeLat, nodeLng], showerMarkerOptions)
-                .bindPopup(`<strong>Shower</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.shower++;
-            }
-            
-            // Check for waste basket
-            else if (tags.amenity === 'waste_basket') {
-              const marker = L.circleMarker([nodeLat, nodeLng], wasteBasketMarkerOptions)
-                .bindPopup(`<strong>Waste Basket</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.wasteBasket++;
-            }
-            
-            // Check for waste disposal
-            else if (tags.amenity === 'waste_disposal') {
-              const marker = L.circleMarker([nodeLat, nodeLng], wasteDisposalMarkerOptions)
-                .bindPopup(`<strong>Waste Disposal</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.wasteDisposal++;
-            }
-            
-            // Check for recycling
-            else if (tags.amenity === 'recycling') {
-              const marker = L.circleMarker([nodeLat, nodeLng], recyclingMarkerOptions)
-                .bindPopup(`<strong>Recycling</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.recycling++;
-            }
-            
-            // Check for shelter
-            else if (tags.amenity === 'shelter') {
-              const marker = L.circleMarker([nodeLat, nodeLng], shelterMarkerOptions)
-                .bindPopup(`<strong>Shelter</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.shelter++;
-            }
-            
-            // Check for bench
-            else if (tags.amenity === 'bench') {
-              const marker = L.circleMarker([nodeLat, nodeLng], benchMarkerOptions)
-                .bindPopup(`<strong>Bench</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.bench++;
-            }
-            
-            // Check for camp site
-            else if (tags.tourism === 'camp_site') {
-              const marker = L.circleMarker([nodeLat, nodeLng], campSiteMarkerOptions)
-                .bindPopup(`<strong>Camp Site</strong><br>${tags.name || ''}`)
-                .addTo(markersGroup);
-              amenitiesCount.campSite++;
-            }
-          }
-        });
-      }
-      
-      // If no amenities were found, just log it
-      if (Object.values(amenitiesCount).every(count => count === 0)) {
-        console.log('No amenities found in this area');
-      }
-      
-      // Store the amenities data in the hidden input if it exists
-      const amenitiesDataInput = document.getElementById('amenities-data');
-      if (amenitiesDataInput) {
-        amenitiesDataInput.value = JSON.stringify(amenitiesCount);
-      }
-      
-      // Remove loading indicator
-      const loadingElement = document.getElementById('amenities-loading');
-      if (loadingElement) {
-        loadingElement.remove();
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching amenities:', error);
-      
-      // Remove loading indicator
-      const loadingElement = document.getElementById('amenities-loading');
-      if (loadingElement) {
-        loadingElement.remove();
-      }
-    });
 }

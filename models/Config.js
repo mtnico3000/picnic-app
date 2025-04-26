@@ -13,6 +13,13 @@ const ConfigSchema = new mongoose.Schema({
     trim: true,
     default: 'passw0rd'
   },
+  amenitiesDistance: {
+    type: Number,
+    required: true,
+    min: 20,
+    max: 1500,
+    default: 1000
+  },
   createdAt: {
     type: Date,
     default: Date.now

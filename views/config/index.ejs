@@ -39,6 +39,20 @@
               <button type="submit" class="btn btn-primary w-100">Update</button>
             </div>
           </div>
+          
+          <div class="mb-3 row">
+            <label for="amenitiesDistance" class="col-sm-2 col-form-label">Amenities Distance</label>
+            <div class="col-sm-8">
+              <div class="d-flex align-items-center">
+                <input type="range" class="form-range" id="amenitiesDistance" name="amenitiesDistance" 
+                       min="20" max="1500" step="10" value="<%= config.amenitiesDistance || 1000 %>">
+                <span id="amenitiesDistanceValue" class="ms-2"><%= config.amenitiesDistance || 1000 %> meters</span>
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <button type="submit" class="btn btn-primary w-100">Update</button>
+            </div>
+          </div>
         </form>
         
         <div class="mt-4">
@@ -50,3 +64,17 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const amenitiesDistanceSlider = document.getElementById('amenitiesDistance');
+    const amenitiesDistanceValue = document.getElementById('amenitiesDistanceValue');
+    
+    if (amenitiesDistanceSlider && amenitiesDistanceValue) {
+      // Update the displayed value when the slider changes
+      amenitiesDistanceSlider.addEventListener('input', function() {
+        amenitiesDistanceValue.textContent = this.value + ' meters';
+      });
+    }
+  });
+</script>

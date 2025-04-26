@@ -18,16 +18,18 @@ mongoose.connect(process.env.DB_URI, {
     if (existingConfig) {
       console.log('Config already exists:', existingConfig);
       
-      // Update the password and name if needed
+      // Update the password, name, and amenitiesDistance if needed
       existingConfig.password = 'passw00rd';
       existingConfig.name = 'Picnic Guru';
+      existingConfig.amenitiesDistance = 1000;
       await existingConfig.save();
       console.log('Config updated');
     } else {
       // Create a new config
       const newConfig = new Config({
         name: 'Picnic Guru',
-        password: 'passw00rd'
+        password: 'passw00rd',
+        amenitiesDistance: 1000
       });
       
       await newConfig.save();
