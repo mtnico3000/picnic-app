@@ -1,4 +1,4 @@
-# Picnic App
+# Picnic App 😎
 
 A Node.js application for planning and managing picnic events.
 
